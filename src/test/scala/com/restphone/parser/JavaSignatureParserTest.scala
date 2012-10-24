@@ -2,8 +2,9 @@ package com.restphone.parser
 
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
 
-//@RunWith( classOf[ JUnitRunner ] )
+@RunWith( classOf[ JUnitRunner ] )
 class JavaSignatureParserTest extends FunSuite {
   val p = new JavaSignatureParser
 

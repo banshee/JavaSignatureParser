@@ -1,3 +1,5 @@
+// use sbt deliver-local to create ivy.xml
+
 name := "JavaSignatureParser"
 
 organization := "com.restphone"
@@ -16,8 +18,13 @@ externalResolvers := Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.restphone" % "artifactname" % "1.0",
-  "org.scalaz" % "scalaz-concurrent_2.10.0-M7" % "7.0.0-M3"
+  "org.scalaz" % "scalaz-concurrent_2.10.0-M7" % "7.0.0-M3",
+  "com.google.guava" % "guava" % "13.0.1"
+)
+
+libraryDependencies ++= Seq(
+  "com.restphone" % "scalatest" %  "2.0.M5" % "test",
+  "org.scalacheck" % "scalacheck_2.10" % "1.10.1-SNAPSHOT"
 )
 
 publishTo <<= version { (v: String) =>
