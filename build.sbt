@@ -24,7 +24,8 @@ libraryDependencies ++= Seq(
 
 libraryDependencies ++= Seq(
   "com.restphone" % "scalatest" %  "2.0.M5" % "test",
-  "org.scalacheck" % "scalacheck_2.10" % "1.10.1-SNAPSHOT"
+  "junit" % "junit" % "4.8.1" % "test",
+  "org.scalacheck" % "scalacheck_2.10" % "1.10.1-SNAPSHOT" % "test"
 )
 
 publishTo <<= version { (v: String) =>
