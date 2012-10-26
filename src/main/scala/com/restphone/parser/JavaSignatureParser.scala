@@ -27,88 +27,6 @@ class JavaSignatureParser extends JavaTokenParsers {
   // with the same name (starting with a lower-case letter) that implement the parser for the
   // grammar element.
 
-  def interpolate[ T ]( xs : Iterable[ T ], sep : T ) = ( xs zip Stream.continually( sep ) ).foldLeft( List.empty[ T ] ) { case ( acc, ( a, b ) ) => b :: a :: acc }.reverse.dropRight( 1 )
-
-  case class MethodSignature( paramSignature : List[ TypeSignature ], resultSignature : TypeSignature ) extends HasTypesUsedMethod {
-    lazy val paramSignatureTypes = paramSignature flatMap { _.typesUsed }
-    lazy val typesUsed = ( paramSignatureTypes ++ resultSignature.typesUsed ) toSet
-    lazy val toJava = {
-      var a = List( resultSignature.toJava, "methodName", "(" )
-      var b = interpolate( paramSignature map { _.toJava }, "," )
-      var c = List( ")" )
-      ( a ++ b ++ c ) mkString " "
-    }
-  }
-
-  case class TypeSignature( x : TypeSignatureElement ) extends HasToJavaMethod with HasTypesUsedMethod {
-    override def toJava = x.toJava
-    override def typesUsed = x.typesUsed
-  }
-
-  case class FieldTypeSignature( x : FieldTypeSignatureElement ) extends TypeSignatureElement with TypeArgElement {
-    override def toJava = x.toJava
-    override def typesUsed = x.typesUsed
-  }
-
-  case class ClassTypeSignature( ids : JavaName, optionalTypeArgs : Option[ TypeArgs ], extension : List[ NestedClass ] ) extends FieldTypeSignatureElement {
-    override def toJava = ids.toJava + optionalTypeArgs.map( _.toJava ).mkString + ( extension map { _.toJava } mkString ( "." ) )
-    override def typesUsed = {
-      val a = optionalTypeArgs.map { _.typesUsed } getOrElse List.empty
-      val b = extension flatMap { _.typesUsed }
-      ids.typesUsed ++ a ++ b
-    }
-  }
-
-  // NestedClass isn't one of the top level elements, but it makes it easier to understand the 
-  // code that parses the ( . Id TypeArgs? )* part of a ClassTypeSignature
-  case class NestedClass( javaName : JavaName, typeArgs : Option[ TypeArgs ] ) extends HasToJavaMethod with HasTypesUsedMethod {
-    override def toJava = "." + javaName.toJava + typeArgs.map { _.toJava }.mkString
-    val elements = ( typeArgs map { _.typesUsed } getOrElse List.empty )
-    override def typesUsed = javaName.typesUsed ++ ( typeArgs map { _.typesUsed } getOrElse List.empty )
-  }
-
-  case class TypeArgs( typeArgs : List[ TypeArg ] ) extends HasToJavaMethod with HasTypesUsedMethod {
-    override def toJava = typeArgs.map( _.toJava ).mkString( "<", ", ", ">" )
-    override def typesUsed = typeArgs flatMap { _.typesUsed } toSet
-  }
-
-  case class TypeArg( t : TypeArgElement ) extends HasToJavaMethod with HasTypesUsedMethod {
-    override def toJava = t.toJava
-    override def typesUsed = t.typesUsed
-  }
-
-  case class TypeVar( t : JavaName ) extends FieldTypeSignatureElement {
-    override def toJava = t.toJava
-    override def typesUsed = t.typesUsed
-  }
-
-  // It's been a long time since CS 101, so I forget exactly what the bits of a grammar
-  // are called.  These are the things on the right-hand side.  For example, the first
-  // line of the grammar is TypeSignature, and it consists of any of the elements for a java
-  // primitive (Z, C, B etc) or a FieldTypeSignature.  So I mark all of the case classes
-  // for the primitives and for FieldTypeSignature with TypeSignatureElement.
-
-  trait TypeSignatureElement extends HasToJavaMethod with HasTypesUsedMethod
-  trait FieldTypeSignatureElement extends HasToJavaMethod with HasTypesUsedMethod
-  trait TypeArgElement extends HasToJavaMethod with HasTypesUsedMethod
-
-  // Any element that can be converted to Java code implements this trait.  It's used to
-  // turn the parsed signature back into Java.
-  trait HasToJavaMethod {
-    def toJava : String
-  }
-
-  trait HasTypesUsedMethod {
-    def typesUsed : Set[ JavaName ]
-  }
-
-  // JavaIdentifier is already taken, so I'm using JavaName instead.  (There's probably a way
-  // to use JavaIdentifier from the parser, but I'll leave that as an exercise for the reader.)
-  case class JavaName( s : String ) extends HasToJavaMethod with HasTypesUsedMethod {
-    override val toJava = s.replace( "java.lang.", "" )
-    override def typesUsed = Set( this )
-  }
-
   def methodSignature : Parser[ MethodSignature ] = {
     val argumentSignature = "(" ~> rep( typeSignature ) <~ ")"
     val result = ( argumentSignature ~ typeSignature ) ^^ { case a ~ b => MethodSignature( a, b ) }
@@ -237,13 +155,96 @@ class JavaSignatureParser extends JavaTokenParsers {
   def javaName : Parser[ JavaName ] = ident ^^ JavaName
 }
 
+case class MethodSignature( paramSignature : List[ TypeSignature ], resultSignature : TypeSignature ) extends HasTypesUsedMethod {
+  lazy val paramSignatureTypes = paramSignature flatMap { _.typesUsed }
+  lazy val typesUsed = ( paramSignatureTypes ++ resultSignature.typesUsed ) toSet
+  lazy val toJava = {
+    var a = List( resultSignature.toJava, "methodName", "(" )
+    var b = JavaSignatureParser.interpolate( paramSignature map { _.toJava }, "," )
+    var c = List( ")" )
+    ( a ++ b ++ c ) mkString " "
+  }
+}
+
+case class TypeSignature( x : TypeSignatureElement ) extends HasToJavaMethod with HasTypesUsedMethod {
+  override def toJava = x.toJava
+  override def typesUsed = x.typesUsed
+}
+
+case class FieldTypeSignature( x : FieldTypeSignatureElement ) extends TypeSignatureElement with TypeArgElement {
+  override def toJava = x.toJava
+  override def typesUsed = x.typesUsed
+}
+
+case class ClassTypeSignature( ids : JavaName, optionalTypeArgs : Option[ TypeArgs ], extension : List[ NestedClass ] ) extends FieldTypeSignatureElement {
+  override def toJava = ids.toJava + optionalTypeArgs.map( _.toJava ).mkString + ( extension map { _.toJava } mkString ( "." ) )
+  override def typesUsed = {
+    val a = optionalTypeArgs.map { _.typesUsed } getOrElse List.empty
+    val b = extension flatMap { _.typesUsed }
+    ids.typesUsed ++ a ++ b
+  }
+}
+
+// NestedClass isn't one of the top level elements, but it makes it easier to understand the 
+// code that parses the ( . Id TypeArgs? )* part of a ClassTypeSignature
+case class NestedClass( javaName : JavaName, typeArgs : Option[ TypeArgs ] ) extends HasToJavaMethod with HasTypesUsedMethod {
+  override def toJava = "." + javaName.toJava + typeArgs.map { _.toJava }.mkString
+  val elements = ( typeArgs map { _.typesUsed } getOrElse List.empty )
+  override def typesUsed = javaName.typesUsed ++ ( typeArgs map { _.typesUsed } getOrElse List.empty )
+}
+
+case class TypeArgs( typeArgs : List[ TypeArg ] ) extends HasToJavaMethod with HasTypesUsedMethod {
+  override def toJava = typeArgs.map( _.toJava ).mkString( "<", ", ", ">" )
+  override def typesUsed = typeArgs flatMap { _.typesUsed } toSet
+}
+
+case class TypeArg( t : TypeArgElement ) extends HasToJavaMethod with HasTypesUsedMethod {
+  override def toJava = t.toJava
+  override def typesUsed = t.typesUsed
+}
+
+case class TypeVar( t : JavaName ) extends FieldTypeSignatureElement {
+  override def toJava = t.toJava
+  override def typesUsed = t.typesUsed
+}
+
+// It's been a long time since CS 101, so I forget exactly what the bits of a grammar
+// are called.  These are the things on the right-hand side.  For example, the first
+// line of the grammar is TypeSignature, and it consists of any of the elements for a java
+// primitive (Z, C, B etc) or a FieldTypeSignature.  So I mark all of the case classes
+// for the primitives and for FieldTypeSignature with TypeSignatureElement.
+
+trait TypeSignatureElement extends HasToJavaMethod with HasTypesUsedMethod
+trait FieldTypeSignatureElement extends HasToJavaMethod with HasTypesUsedMethod
+trait TypeArgElement extends HasToJavaMethod with HasTypesUsedMethod
+
+// Any element that can be converted to Java code implements this trait.  It's used to
+// turn the parsed signature back into Java.
+trait HasToJavaMethod {
+  def toJava : String
+}
+
+trait HasTypesUsedMethod {
+  def typesUsed : Set[ JavaName ]
+}
+
+// JavaIdentifier is already taken, so I'm using JavaName instead.  (There's probably a way
+// to use JavaIdentifier from the parser, but I'll leave that as an exercise for the reader.)
+case class JavaName( s : String ) extends HasToJavaMethod with HasTypesUsedMethod {
+  override val toJava = s.replace( "java.lang.", "" )
+  override def typesUsed = Set( this )
+}
+
 object JavaSignatureParser {
   def parse( s : String ) = {
     val p = new JavaSignatureParser
     p.parseAll( p.typeSignature, s )
   }
+
   def parseMethod( s : String ) = {
     val p = new JavaSignatureParser
     p.parseAll( p.methodSignature, s )
   }
+
+  def interpolate[ T ]( xs : Iterable[ T ], sep : T ) = ( xs zip Stream.continually( sep ) ).foldLeft( List.empty[ T ] ) { case ( acc, ( a, b ) ) => b :: a :: acc }.reverse.dropRight( 1 )
 }
