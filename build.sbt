@@ -4,7 +4,7 @@ name := "JavaSignatureParser"
 
 organization := "com.restphone"
 
-version := "0.2"
+version := "0.3-SNAPSHOT"
 
 scalaVersion := "2.10.0-SNAPSHOT"
 
@@ -18,7 +18,7 @@ externalResolvers := Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.scalaz" % "scalaz-concurrent_2.10.0-M7" % "7.0.0-M3",
+  "org.scalaz" % "scalaz-concurrent_2.10.0-SNAPSHOT" % "7.0-SNAPSHOT",
   "com.google.guava" % "guava" % "13.0.1"
 )
 
@@ -27,6 +27,8 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.8.1" % "test",
   "org.scalacheck" % "scalacheck_2.10" % "1.10.1-SNAPSHOT" % "test"
 )
+
+transitiveClassifiers := Seq("sources")
 
 publishTo <<= version { (v: String) =>
   val nexus = "http://git:8081/nexus/content/repositories/"
