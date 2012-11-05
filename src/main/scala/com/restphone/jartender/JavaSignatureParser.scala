@@ -1,11 +1,9 @@
-package com.restphone.parser
+package com.restphone.jartender
 
 import scalaz._
-import Scalaz._
-
+import scalaz.Scalaz._
 import scala.util.parsing.combinator._
-
-import scala.collection.mutable
+import scala.Option.option2Iterable
 
 // This parser uses the grammar from section 4.1.1 of the 
 // ASM 4.0: A Java bytecode engineering library
