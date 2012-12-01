@@ -1,10 +1,7 @@
 package com.restphone.jartender
 
-import org.junit.runner.RunWith
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
 
-@RunWith( classOf[ JUnitRunner ] )
 class JavaSignatureParserTest extends FunSuite {
   val p = new JavaSignatureParser
 
@@ -21,35 +18,35 @@ class JavaSignatureParserTest extends FunSuite {
   }
 
   test( "can parse Number" ) {
-    expectResult( "Number" ) {
+    expectResult( "java.lang.Number" ) {
       val result = p.parseAll( p.typeSignature, "Ljava/lang/Number;" )
       result.get.toJava
     }
   }
 
   test( "can parse List<Number>" ) {
-    expectResult( "java.util.List<Number>" ) {
+    expectResult( "java.util.List<java.lang.Number>" ) {
       val result = p.parseAll( p.typeSignature, "Ljava/util/List<Ljava/lang/Number;>;" )
       result.get.toJava
     }
   }
 
   test( "can parse java.util.List<? extends Number>" ) {
-    expectResult( "java.util.List<? extends Number>" ) {
+    expectResult( "java.util.List<? extends java.lang.Number>" ) {
       val s = "Ljava/util/List<+Ljava/lang/Number;>;"
       JavaSignatureParser.parse( s ).get.toJava
     }
   }
 
   test( "can parse java.util.List<? super Number>" ) {
-    expectResult( "java.util.List<? super Number>" ) {
+    expectResult( "java.util.List<? super java.lang.Number>" ) {
       val s = "Ljava/util/List<-Ljava/lang/Number;>;"
       JavaSignatureParser.parse( s ).get.toJava
     }
   }
 
   test( "can parse List<List<String>[]>" ) {
-    expectResult( "java.util.List<java.util.List<String>[]>" ) {
+    expectResult( "java.util.List<java.util.List<java.lang.String>[]>" ) {
       val s = "Ljava/util/List<[Ljava/util/List<Ljava/lang/String;>;>;"
       JavaSignatureParser.parse( s ).get.toJava
     }

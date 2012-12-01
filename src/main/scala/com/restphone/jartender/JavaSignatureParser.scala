@@ -229,7 +229,7 @@ trait HasTypesUsedMethod {
 // JavaIdentifier is already taken, so I'm using JavaName instead.  (There's probably a way
 // to use JavaIdentifier from the parser, but I'll leave that as an exercise for the reader.)
 case class JavaName( s : String ) extends HasToJavaMethod with HasTypesUsedMethod {
-  override val toJava = s.replace( "java.lang.", "" )
+  override val toJava = s
   override def typesUsed = Set( this )
 }
 
