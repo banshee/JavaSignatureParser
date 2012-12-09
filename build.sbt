@@ -18,14 +18,10 @@ externalResolvers := Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.scalaz" % "scalaz-concurrent_2.10.0-SNAPSHOT" % "7.0-SNAPSHOT",
-  "com.google.guava" % "guava" % "13.0.1"
-)
-
-libraryDependencies ++= Seq(
-  "com.restphone" % "scalatest" %  "2.0.M5" % "test",
-  "junit" % "junit" % "4.8.1" % "test",
-  "org.scalacheck" % "scalacheck_2.10" % "1.10.1-SNAPSHOT" % "test"
+  "org.scalaz" % "scalaz-core_2.10.0-RC3" % "7.0.0-M5",
+  "org.scalaz" % "scalaz-core_2.10.0-RC3" % "7.0.0-M5" % "sources",
+  "com.google.guava" % "guava" % "13.0.1",
+  "org.scalatest" % "scalatest_2.10.0-RC3" % "2.0.M5-B1" % "test"
 )
 
 transitiveClassifiers := Seq("sources")

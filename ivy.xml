@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
-	<info organisation="com.restphone" module="javasignatureparser_2.10" revision="0.3-SNAPSHOT" status="integration" publication="20121030065507">
+	<info organisation="com.restphone" module="javasignatureparser_2.10" revision="0.3-SNAPSHOT" status="integration" publication="20121208180225">
 		<description>
 		JavaSignatureParser
 		</description>
@@ -25,13 +25,12 @@
 		<artifact name="javasignatureparser_2.10" type="src" ext="jar" conf="sources" e:classifier="sources"/>
 		<artifact name="javasignatureparser_2.10" type="doc" ext="jar" conf="docs" e:classifier="javadoc"/>
 	</publications>
-	<dependencies>
+    <dependencies defaultconfmapping="*->default,sources" >
 		<dependency org="org.scala-lang" name="scala-library" rev="2.10.0-SNAPSHOT" conf="compile->default(compile)"/>
-		<dependency org="org.scalaz" name="scalaz-concurrent_2.10.0-SNAPSHOT" rev="7.0-SNAPSHOT" conf="compile->default(compile)"/>
-		<dependency org="com.google.guava" name="guava" rev="13.0.1" conf="compile->default(compile)"/>
-		<dependency org="com.restphone" name="scalatest" rev="2.0.M5" conf="test->default(compile)"/>
-		<dependency org="junit" name="junit" rev="4.8.1" conf="test->default(compile)"/>
-		<dependency org="org.scalacheck" name="scalacheck_2.10" rev="1.10.1-SNAPSHOT" conf="test->default(compile)"/>
+		<dependency org="org.scalaz" name="scalaz-core_2.10.0-RC3" rev="7.0.0-M5" conf="compile->default(compile);sources->default(compile)"/>
+		<dependency org="org.scalaz" name="scalaz-core_2.10.0-RC3-sources" rev="7.0.0-M5" conf="compile->default(compile);sources->default(compile)"/>
+				<dependency org="com.google.guava" name="guava" rev="13.0.1" conf="compile->default(compile)"/>
+		<dependency org="org.scalatest" name="scalatest_2.10.0-RC3" rev="2.0.M5-B1" conf="test->default(compile)"/>
 		<exclude org="org.scala-lang" module="scala-library" artifact="*" type="jar" ext="*" matcher="exact"/>
 		<exclude org="org.scala-lang" module="scala-compiler" artifact="*" type="jar" ext="*" matcher="exact"/>
 		<override org="org.scala-lang" module="scala-library" matcher="exact" rev="2.10.0-SNAPSHOT"/>
