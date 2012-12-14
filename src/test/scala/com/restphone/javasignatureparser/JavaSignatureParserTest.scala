@@ -1,13 +1,20 @@
-package com.restphone.jartender
+package com.restphone.javasignatureparser
 
 import org.scalatest.FunSuite
+import org.scalatest.matchers.ShouldMatchers
 
-class JavaSignatureParserTest extends FunSuite {
+class JavaSignatureParserTest extends FunSuite with ShouldMatchers{
   val p = new JavaSignatureParser
 
   test( "can parse a Java primitive" ) {
     expectResult( "boolean" ) {
       p.parseAll( p.typeSignature, "Z" ).get.toJava
+    }
+  }
+
+  test( "can parse a Typevar" ) {
+    expectResult( "foo.bar$" ) {
+      p.parseAll( p.typeVar, "Tfoo/bar$;" ).get.toJava
     }
   }
 
@@ -63,6 +70,12 @@ class JavaSignatureParserTest extends FunSuite {
     expectResult( "java.util.List<?>" ) {
       JavaSignatureParser.parse( "Ljava/util/List<*>;" ).get.toJava
     }
+  }
+  
+  test("can parse Lorg/scalatest/matchers/ClassicMatchers$ShortTolerance$;") {
+    val s = "Lorg/scalatest/matchers/ClassicMatchers$ShortTolerance$;"
+    val r = JavaSignatureParser.parse(s)
+    r.get.toJava should be ("org.scalatest.matchers.ClassicMatchers$ShortTolerance$")
   }
 
   test( "can parse (II)V" ) {

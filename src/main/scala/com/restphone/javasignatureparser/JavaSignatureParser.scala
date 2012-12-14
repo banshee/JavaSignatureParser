@@ -1,9 +1,10 @@
-package com.restphone.jartender
+package com.restphone.javasignatureparser
 
 import scalaz._
-import scalaz.Scalaz._
+import Scalaz._
 import scala.util.parsing.combinator._
 import scala.Option.option2Iterable
+import scala.util.parsing.input.CharSequenceReader
 
 // This parser uses the grammar from section 4.1.1 of the 
 // ASM 4.0: A Java bytecode engineering library
@@ -25,7 +26,7 @@ class JavaSignatureParser extends JavaTokenParsers {
   // with the same name (starting with a lower-case letter) that implement the parser for the
   // grammar element.
 
-  def methodSignature : Parser[ MethodSignature ] = {
+  def methodSignature: Parser[MethodSignature] = {
     val argumentSignature = "(" ~> rep( typeSignature ) <~ ")"
     val result = ( argumentSignature ~ typeSignature ) ^^ { case a ~ b => MethodSignature( a, b ) }
     result
@@ -34,7 +35,7 @@ class JavaSignatureParser extends JavaTokenParsers {
   // This is the heart of the parser.  Take each line of the grammer and turn it into
   // a Parser[X].
 
-  def typeSignature : Parser[ TypeSignature ] = {
+  def typeSignature: Parser[TypeSignature] = {
     // I use TypeDescriptor to mean all the single-character elements for Java primitives
     sealed abstract class TypeDescriptor extends TypeSignatureElement {
       override def typesUsed = Set.empty // never care about primitives
@@ -67,16 +68,16 @@ class JavaSignatureParser extends JavaTokenParsers {
       override def toJava = "void"
     }
 
-    def typeDescriptor : Parser[ TypeDescriptor ] = {
-      def typeDescriptorZ : Parser[ TypeDescriptor ] = "Z" ^^ { _ => TypeDescriptorZ }
-      def typeDescriptorC : Parser[ TypeDescriptor ] = "C" ^^ { _ => TypeDescriptorC }
-      def typeDescriptorB : Parser[ TypeDescriptor ] = "B" ^^ { _ => TypeDescriptorB }
-      def typeDescriptorS : Parser[ TypeDescriptor ] = "S" ^^ { _ => TypeDescriptorS }
-      def typeDescriptorI : Parser[ TypeDescriptor ] = "I" ^^ { _ => TypeDescriptorI }
-      def typeDescriptorF : Parser[ TypeDescriptor ] = "F" ^^ { _ => TypeDescriptorF }
-      def typeDescriptorJ : Parser[ TypeDescriptor ] = "J" ^^ { _ => TypeDescriptorJ }
-      def typeDescriptorD : Parser[ TypeDescriptor ] = "D" ^^ { _ => TypeDescriptorD }
-      def typeDescriptorV : Parser[ TypeDescriptor ] = "V" ^^ { _ => TypeDescriptorV }
+    def typeDescriptor: Parser[TypeDescriptor] = {
+      def typeDescriptorZ: Parser[TypeDescriptor] = "Z" ^^ { _ => TypeDescriptorZ }
+      def typeDescriptorC: Parser[TypeDescriptor] = "C" ^^ { _ => TypeDescriptorC }
+      def typeDescriptorB: Parser[TypeDescriptor] = "B" ^^ { _ => TypeDescriptorB }
+      def typeDescriptorS: Parser[TypeDescriptor] = "S" ^^ { _ => TypeDescriptorS }
+      def typeDescriptorI: Parser[TypeDescriptor] = "I" ^^ { _ => TypeDescriptorI }
+      def typeDescriptorF: Parser[TypeDescriptor] = "F" ^^ { _ => TypeDescriptorF }
+      def typeDescriptorJ: Parser[TypeDescriptor] = "J" ^^ { _ => TypeDescriptorJ }
+      def typeDescriptorD: Parser[TypeDescriptor] = "D" ^^ { _ => TypeDescriptorD }
+      def typeDescriptorV: Parser[TypeDescriptor] = "V" ^^ { _ => TypeDescriptorV }
       ( typeDescriptorZ |
         typeDescriptorC |
         typeDescriptorB |
@@ -90,33 +91,33 @@ class JavaSignatureParser extends JavaTokenParsers {
     ( typeDescriptor | fieldTypeSignature ) ^^ TypeSignature
   }
 
-  def fieldTypeSignature : Parser[ FieldTypeSignature ] = {
-    case class ArrayTypeSignature( xs : TypeSignature ) extends FieldTypeSignatureElement {
+  def fieldTypeSignature: Parser[FieldTypeSignature] = {
+    case class ArrayTypeSignature( xs: TypeSignature ) extends FieldTypeSignatureElement {
       override def toJava = xs.toJava + "[]"
       override def typesUsed = xs.typesUsed
     }
 
-    def arrayTypeSignature : Parser[ ArrayTypeSignature ] = "[" ~> typeSignature ^^ { ArrayTypeSignature( _ ) }
+    def arrayTypeSignature: Parser[ArrayTypeSignature] = "[" ~> typeSignature ^^ { ArrayTypeSignature( _ ) }
 
     ( classTypeSignature | arrayTypeSignature | typeVar ) ^^ FieldTypeSignature
   }
 
-  def classTypeSignature : Parser[ ClassTypeSignature ] = {
+  def classTypeSignature: Parser[ClassTypeSignature] = {
     val nestedClasses = "." ~> javaName ~ opt( typeArgs ) ^^ { case a ~ b => NestedClass( a, b ) }
 
-    ( "L" ~> rep1sep( javaName, "/" ) ~ opt( typeArgs ) ~ rep( nestedClasses ) <~ ";" ) ^^
-      { case ids ~ optionalTypeArgs ~ extensionElements => ClassTypeSignature( JavaName( ids.map( _.s ).mkString( "." ) ), optionalTypeArgs, extensionElements ) }
+    ( "L" ~> javaName ~ opt( typeArgs ) ~ rep( nestedClasses ) <~ ";" ) ^^
+      { case jname ~ optionalTypeArgs ~ extensionElements => ClassTypeSignature( jname, optionalTypeArgs, extensionElements ) }
   }
 
-  def typeArgs : Parser[ TypeArgs ] = "<" ~> rep( typeArg ) <~ ">" ^^ TypeArgs
+  def typeArgs: Parser[TypeArgs] = "<" ~> rep( typeArg ) <~ ">" ^^ TypeArgs
 
-  def typeArg : Parser[ TypeArg ] = {
+  def typeArg: Parser[TypeArg] = {
     // Signatures use signed FieldTypeSignatures for things like
     // java.util.List<? super Number> -- Ljava/util/List<-Ljava/lang/Number;>
     // and * (star) for 
     // java.util.List<?> -- Ljava/util/List<*>;
 
-    case class FieldTypeSignatureWithSign( sign : SignForFieldTypeSignature, fts : FieldTypeSignature ) extends HasToJavaMethod with TypeArgElement {
+    case class FieldTypeSignatureWithSign( sign: SignForFieldTypeSignature, fts: FieldTypeSignature ) extends HasToJavaMethod with TypeArgElement {
       override def toJava = sign.toJava + fts.toJava
       override def typesUsed = fts.typesUsed
     }
@@ -134,10 +135,10 @@ class JavaSignatureParser extends JavaTokenParsers {
       override def typesUsed = Set.empty
     }
 
-    def typeStar : Parser[ TypeArgElement ] = "*" ^^ { _ => Star }
+    def typeStar: Parser[TypeArgElement] = "*" ^^ { _ => Star }
 
-    def fieldTypeSignatureWithSign : Parser[ FieldTypeSignatureWithSign ] = {
-      def typePlusOrMinus : Parser[ SignForFieldTypeSignature ] = {
+    def fieldTypeSignatureWithSign: Parser[FieldTypeSignatureWithSign] = {
+      def typePlusOrMinus: Parser[SignForFieldTypeSignature] = {
         def plus = "+" ^^ { _ => Plus }
         def minus = "-" ^^ { _ => Minus }
         plus | minus
@@ -148,12 +149,41 @@ class JavaSignatureParser extends JavaTokenParsers {
     ( typeStar | fieldTypeSignatureWithSign | fieldTypeSignature ) ^^ { x => TypeArg( x ) }
   }
 
-  def typeVar : Parser[ TypeVar ] = "T" ~> javaName <~ ";" ^^ TypeVar
+  def typeVar: Parser[TypeVar] = "T" ~> javaName <~ ";" ^^ TypeVar
 
-  def javaName : Parser[ JavaName ] = ident ^^ JavaName
+  def javaName: Parser[JavaName] = rep1sep( javaIdentifier, "/" ) ^^ { case ids => JavaName( ids.mkString( "." ) ) }
+
+  def javaIdentifier = new Parser[String] {
+    val IsStartChar = new Object {
+      def unapply( x: Tuple2[Char, Int] ) = if ( Character.isJavaIdentifierStart( x._1 ) ) some( x._1, x._2 ) else none
+    }
+    val IsPartChar = new Object {
+      import scala.PartialFunction._
+      def unapply( x: Tuple2[Char, Int] ) = condOpt( x ) {
+        case ( xchar, xi ) if Character.isJavaIdentifierPart( xchar ) => ( xchar, xi )
+      }
+    }
+    def apply( in: Input ) = {
+      val inputList = in.source.toString.toList.zipWithIndex
+      val inputListFromOffset = inputList.dropWhile { case ( c, i ) => i < in.offset }
+      def find( il: List[( Char, Int )], acc: List[Char], previousOffset: Option[Int] ): ParseResult[String] = {
+        il match {
+          case IsStartChar( ac, ai ) :: Nil => Success( ( ac :: acc.reverse ).mkString, in.drop( previousOffset getOrElse ( ai + 1 ) ) )
+          case IsStartChar( ac, ai ) :: IsPartChar( bc, bi ) :: t => find( ( ac, ai ) :: t, bc :: acc, some( bi ) )
+          case IsStartChar( ac, ai ) :: ( bc, bi ) :: t => {
+            val s = ( ac :: acc.reverse ).mkString
+            Success( s, in.drop( s.length ) )
+          }
+          case _ => Failure( "not a java identifier", in )
+        }
+      }
+      val r = find( inputListFromOffset, List(), None )
+      r
+    }
+  }
 }
 
-case class MethodSignature( paramSignature : List[ TypeSignature ], resultSignature : TypeSignature ) extends HasTypesUsedMethod {
+case class MethodSignature( paramSignature: List[TypeSignature], resultSignature: TypeSignature ) extends HasTypesUsedMethod {
   lazy val paramSignatureTypes = paramSignature flatMap { _.typesUsed }
   lazy val typesUsed = ( paramSignatureTypes ++ resultSignature.typesUsed ) toSet
   lazy val toJava = {
@@ -164,17 +194,17 @@ case class MethodSignature( paramSignature : List[ TypeSignature ], resultSignat
   }
 }
 
-case class TypeSignature( x : TypeSignatureElement ) extends HasToJavaMethod with HasTypesUsedMethod {
+case class TypeSignature( x: TypeSignatureElement ) extends HasToJavaMethod with HasTypesUsedMethod {
   override def toJava = x.toJava
   override def typesUsed = x.typesUsed
 }
 
-case class FieldTypeSignature( x : FieldTypeSignatureElement ) extends TypeSignatureElement with TypeArgElement {
+case class FieldTypeSignature( x: FieldTypeSignatureElement ) extends TypeSignatureElement with TypeArgElement {
   override def toJava = x.toJava
   override def typesUsed = x.typesUsed
 }
 
-case class ClassTypeSignature( ids : JavaName, optionalTypeArgs : Option[ TypeArgs ], extension : List[ NestedClass ] ) extends FieldTypeSignatureElement {
+case class ClassTypeSignature( ids: JavaName, optionalTypeArgs: Option[TypeArgs], extension: List[NestedClass] ) extends FieldTypeSignatureElement {
   override def toJava = ids.toJava + optionalTypeArgs.map( _.toJava ).mkString + ( extension map { _.toJava } mkString ( "." ) )
   override def typesUsed = {
     val a = optionalTypeArgs.map { _.typesUsed } getOrElse List.empty
@@ -185,23 +215,23 @@ case class ClassTypeSignature( ids : JavaName, optionalTypeArgs : Option[ TypeAr
 
 // NestedClass isn't one of the top level elements, but it makes it easier to understand the 
 // code that parses the ( . Id TypeArgs? )* part of a ClassTypeSignature
-case class NestedClass( javaName : JavaName, typeArgs : Option[ TypeArgs ] ) extends HasToJavaMethod with HasTypesUsedMethod {
+case class NestedClass( javaName: JavaName, typeArgs: Option[TypeArgs] ) extends HasToJavaMethod with HasTypesUsedMethod {
   override def toJava = "." + javaName.toJava + typeArgs.map { _.toJava }.mkString
   val elements = ( typeArgs map { _.typesUsed } getOrElse List.empty )
   override def typesUsed = javaName.typesUsed ++ ( typeArgs map { _.typesUsed } getOrElse List.empty )
 }
 
-case class TypeArgs( typeArgs : List[ TypeArg ] ) extends HasToJavaMethod with HasTypesUsedMethod {
+case class TypeArgs( typeArgs: List[TypeArg] ) extends HasToJavaMethod with HasTypesUsedMethod {
   override def toJava = typeArgs.map( _.toJava ).mkString( "<", ", ", ">" )
   override def typesUsed = typeArgs flatMap { _.typesUsed } toSet
 }
 
-case class TypeArg( t : TypeArgElement ) extends HasToJavaMethod with HasTypesUsedMethod {
+case class TypeArg( t: TypeArgElement ) extends HasToJavaMethod with HasTypesUsedMethod {
   override def toJava = t.toJava
   override def typesUsed = t.typesUsed
 }
 
-case class TypeVar( t : JavaName ) extends FieldTypeSignatureElement {
+case class TypeVar( t: JavaName ) extends FieldTypeSignatureElement {
   override def toJava = t.toJava
   override def typesUsed = t.typesUsed
 }
@@ -219,30 +249,63 @@ trait TypeArgElement extends HasToJavaMethod with HasTypesUsedMethod
 // Any element that can be converted to Java code implements this trait.  It's used to
 // turn the parsed signature back into Java.
 trait HasToJavaMethod {
-  def toJava : String
+  def toJava: String
 }
 
 trait HasTypesUsedMethod {
-  def typesUsed : Set[ JavaName ]
+  def typesUsed: Set[JavaName]
 }
 
 // JavaIdentifier is already taken, so I'm using JavaName instead.  (There's probably a way
 // to use JavaIdentifier from the parser, but I'll leave that as an exercise for the reader.)
-case class JavaName( s : String ) extends HasToJavaMethod with HasTypesUsedMethod {
+case class JavaName( s: String ) extends HasToJavaMethod with HasTypesUsedMethod {
   override val toJava = s
   override def typesUsed = Set( this )
 }
 
 object JavaSignatureParser {
-  def parse( s : String ) = {
+  def parse( s: String ) = {
     val p = new JavaSignatureParser
     p.parseAll( p.typeSignature, s )
   }
 
-  def parseMethod( s : String ) = {
+  def parseMethod( s: String ) = {
     val p = new JavaSignatureParser
     p.parseAll( p.methodSignature, s )
   }
 
-  def interpolate[ T ]( xs : Iterable[ T ], sep : T ) = ( xs zip Stream.continually( sep ) ).foldLeft( List.empty[ T ] ) { case ( acc, ( a, b ) ) => b :: a :: acc }.reverse.dropRight( 1 )
+  def interpolate[T]( xs: Iterable[T], sep: T ) = ( xs zip Stream.continually( sep ) ).foldLeft( List.empty[T] ) { case ( acc, ( a, b ) ) => b :: a :: acc }.reverse.dropRight( 1 )
 }
+
+//object JxParsers {
+//  type Elem = Char
+//
+//  object JavaIdentParser extends Parsers {
+//    type Elem = Char
+//    def javaIdentifier = new Parser[String] {
+//      val IsStartChar = new Object {
+//        def unapply( x: Tuple2[Char, Int] ) = if ( Character.isJavaIdentifierStart( x._1 ) ) some( x._1, x._2 ) else none
+//      }
+//      val IsPartChar = new Object {
+//        def unapply( x: Tuple2[Char, Int] ) = if ( Character.isJavaIdentifierPart( x._1 ) ) some( x._1, x._2 ) else none
+//      }
+//      def apply( in: Input ) = {
+//        val inputList = in.source.toString.toList.zipWithIndex
+//        val inputListFromOffset = inputList.dropWhile { case ( c, i ) => i < in.offset }
+//        def find( il: List[( Char, Int )], acc: List[Char], previousOffset: Option[Int] ): ParseResult[String] = il match {
+//          case IsStartChar( ac, ai ) :: Nil => Success( ( ac :: acc.reverse ).mkString, in.drop( previousOffset getOrElse ( ai + 1 ) ) )
+//          case IsStartChar( ac, ai ) :: IsPartChar( bc, bi ) :: t => find( ( ac, ai ) :: t, bc :: acc, some( bi + 1 ) )
+//          case IsStartChar( ac, ai ) :: ( bc, bi ) :: t => Success( ( ac :: acc.reverse ).mkString, in.drop( previousOffset getOrElse ( ai + 1 ) ) )
+//          case _ => Failure( "not a java identifier", in )
+//        }
+//        val r = find( inputListFromOffset, List(), None )
+//        println( f"result is $r" )
+//        r
+//      }
+//    }
+//  }
+//
+//  val p = JavaIdentParsers.javaIdentifier
+//  val rdr: scala.util.parsing.input.Reader[Elem] = new CharSequenceReader( "ab$c b" )
+//  val q = p( rdr )
+//}
