@@ -29,8 +29,3 @@ publishTo <<= version { (v: String) =>
   else
     Some("releases" at nexus + "releases")
 }
-
-credentials += Credentials("Sonatype Nexus Repository Manager", 
-                           "git", 
-                           "deployment",
-                           "deploy")

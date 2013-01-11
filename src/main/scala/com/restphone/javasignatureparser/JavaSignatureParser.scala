@@ -276,36 +276,3 @@ object JavaSignatureParser {
 
   def interpolate[T]( xs: Iterable[T], sep: T ) = ( xs zip Stream.continually( sep ) ).foldLeft( List.empty[T] ) { case ( acc, ( a, b ) ) => b :: a :: acc }.reverse.dropRight( 1 )
 }
-
-//object JxParsers {
-//  type Elem = Char
-//
-//  object JavaIdentParser extends Parsers {
-//    type Elem = Char
-//    def javaIdentifier = new Parser[String] {
-//      val IsStartChar = new Object {
-//        def unapply( x: Tuple2[Char, Int] ) = if ( Character.isJavaIdentifierStart( x._1 ) ) some( x._1, x._2 ) else none
-//      }
-//      val IsPartChar = new Object {
-//        def unapply( x: Tuple2[Char, Int] ) = if ( Character.isJavaIdentifierPart( x._1 ) ) some( x._1, x._2 ) else none
-//      }
-//      def apply( in: Input ) = {
-//        val inputList = in.source.toString.toList.zipWithIndex
-//        val inputListFromOffset = inputList.dropWhile { case ( c, i ) => i < in.offset }
-//        def find( il: List[( Char, Int )], acc: List[Char], previousOffset: Option[Int] ): ParseResult[String] = il match {
-//          case IsStartChar( ac, ai ) :: Nil => Success( ( ac :: acc.reverse ).mkString, in.drop( previousOffset getOrElse ( ai + 1 ) ) )
-//          case IsStartChar( ac, ai ) :: IsPartChar( bc, bi ) :: t => find( ( ac, ai ) :: t, bc :: acc, some( bi + 1 ) )
-//          case IsStartChar( ac, ai ) :: ( bc, bi ) :: t => Success( ( ac :: acc.reverse ).mkString, in.drop( previousOffset getOrElse ( ai + 1 ) ) )
-//          case _ => Failure( "not a java identifier", in )
-//        }
-//        val r = find( inputListFromOffset, List(), None )
-//        println( f"result is $r" )
-//        r
-//      }
-//    }
-//  }
-//
-//  val p = JavaIdentParsers.javaIdentifier
-//  val rdr: scala.util.parsing.input.Reader[Elem] = new CharSequenceReader( "ab$c b" )
-//  val q = p( rdr )
-//}
