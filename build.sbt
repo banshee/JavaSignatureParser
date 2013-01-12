@@ -29,3 +29,5 @@ publishTo <<= version { (v: String) =>
   else
     Some("releases" at nexus + "releases")
 }
+
+credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
