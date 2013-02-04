@@ -11,9 +11,8 @@ scalaVersion := "2.10.0"
 publishMavenStyle := true
 
 libraryDependencies ++= Seq(
-  "org.scalaz" % "scalaz-core_2.10" % "7.0.0-M7",
   "com.google.guava" % "guava" % "13.0.1",
-  "org.scalatest" % "scalatest_2.10" % "2.0.M6-SNAP8" % "test"
+  "org.scalaz" %% "scalaz-core" % "latest.snapshot",
+  "org.scalatest" %% "scalatest" % "latest.snapshot" % "test",
+  "org.scala-lang" % "scala-actors" % "2.10.0"
 )
-
-transitiveClassifiers := Seq("sources")
