@@ -4,17 +4,17 @@ name := "JavaSignatureParser"
 
 organization := "com.restphone"
 
-version := "0.5"
+version := "0.6"
 
-scalaVersion := "2.10.1"
+scalaVersion := "2.10.2"
 
 publishMavenStyle := true
 
 publishArtifact in Test := false
 
 libraryDependencies ++= Seq(
-  "org.scalaz" %% "scalaz-core" % "7.0.0-M7",
-  "com.google.guava" % "guava" % "13.0.1",
+  "org.scalaz" % "scalaz-core_2.10" % "7.0.2",
+  "com.google.guava" % "guava" % "14.0.1",
   "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
 )
 
