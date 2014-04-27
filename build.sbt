@@ -1,21 +1,23 @@
 // use sbt deliver-local to create ivy.xml
 
+// "com.restphone" % "javasignatureparser" % "0.7"
+
 name := "JavaSignatureParser"
 
 organization := "com.restphone"
 
-version := "0.6"
+version := "0.7"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.11.0"
 
 publishMavenStyle := true
 
 publishArtifact in Test := false
 
 libraryDependencies ++= Seq(
-  "org.scalaz" % "scalaz-core_2.10" % "7.0.2",
-  "com.google.guava" % "guava" % "14.0.1",
-  "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
+  "com.google.guava" % "guava" % "16.0.1",
+  "com.restphone" %% "scalatestutilities" % "0.6" % "test",
+  "org.scalaz" %% "scalaz-core" % "7.0.6"
 )
 
 pomExtra := (
@@ -39,3 +41,11 @@ pomExtra := (
       <organizationUrl>http://restphone.com</organizationUrl>
     </developer>
   </developers>)
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
